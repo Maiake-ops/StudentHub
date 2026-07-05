@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F7F4EA;
+    --paper-line: rgba(61,90,153,0.13);
+    --ink:#243149;
+    --ink-soft:#5b6478;
+    --blue:#3D5A99;
+    --blue-deep:#2B3A55;
+    --coral:#E2603E;
+    --sage:#7A9E7E;
+    --sage-soft:#E4EEE4;
+    --card:#FFFFFF;
+    --line:#DBD5C4;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    background:
+      linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/28px 28px,
+      linear-gradient(90deg, var(--paper-line) 1px, transparent 1px) 0 0/28px 28px,
+      var(--paper);
+    min-height:100vh;
+  }
+  .app{
+    display:grid;
+    grid-template-columns: 250px 1fr;
+    min-height:100vh;
+    max-width:1440px;
+    margin:0 auto;
+  }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    padding:28px 20px 20px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+    border-right:2px solid var(--blue-deep);
+  }
+  .brand{ display:flex; align-items:baseline; gap:8px; }
+  .brand-mark{
+    width:34px;height:34px; border-radius:9px; background:var(--blue);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-family:'Fraunces',serif;font-weight:700;font-size:16px;
+    flex-shrink:0; transform: rotate(-4deg);
+  }
+  .brand h1{
+    font-family:'Fraunces',serif; font-style:italic; font-weight:600; font-size:26px;
+    line-height:1.05; margin:0; color:var(--blue-deep);
+  }
+
+  nav.primary{display:flex;flex-direction:column;gap:2px;}
+  .nav-item{
+    display:flex;align-items:center;gap:10px; padding:9px 10px; border-radius:9px;
+    font-weight:600; font-size:15px; color:var(--ink); cursor:pointer; position:relative;
+    border:none; background:none; text-align:left; font-family:inherit;
+  }
+  .nav-item .dot{ width:7px;height:7px;border-radius:50%;background:var(--ink-soft); flex-shrink:0; }
+  .nav-item.active{ color:var(--blue-deep); }
+  .nav-item.active .dot{ background:var(--coral); }
+  .nav-item.active::after{
+    content:""; position:absolute; left:10px; right:10px; bottom:1px; height:3px;
+    background:var(--coral); border-radius:2px; opacity:.55;
+  }
+  .nav-item:hover{ background:rgba(61,90,153,0.08); }
+
+  .subnav{
+    margin-left:17px; padding-left:12px; border-left:2px dashed var(--line);
+    display:flex;flex-direction:column; gap:2px; margin-top:2px;
+  }
+  .subnav .nav-item{ font-size:13.5px; font-weight:500; padding:6px 10px;}
+
+  .block-label{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--ink-soft); margin:2px 0 -8px 2px;
+  }
+
+  .chat-list{ display:flex; flex-direction:column; gap:3px; overflow-y:auto; max-height:260px;}
+  .chat-entry{ display:flex; align-items:center; gap:10px; padding:7px 8px; border-radius:10px; cursor:pointer; font-size:14px; font-weight:500; }
+  .chat-entry:hover, .chat-entry.active{ background:rgba(61,90,153,0.09); }
+  .avatar{
+    width:28px;height:28px;border-radius:50%; display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; color:#fff; flex-shrink:0;
+  }
+  .chat-entry .meta{ display:flex; flex-direction:column; line-height:1.2; overflow:hidden;}
+  .chat-entry .meta small{ color:var(--ink-soft); font-weight:400; font-size:11.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .unread{
+    margin-left:auto; background:var(--coral); color:#fff; font-family:'IBM Plex Mono',monospace; font-size:10px;
+    min-width:16px;height:16px; border-radius:8px; display:flex;align-items:center;justify-content:center; padding:0 4px;
+  }
+
+  .whoami{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft);
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;
+    padding:9px 10px; border-radius:8px; background:rgba(61,90,153,.06); margin-top:auto;
+  }
+  .whoami button{
+    background:none;border:none;color:var(--blue); font-family:inherit; font-size:11px;
+    cursor:pointer; text-decoration:underline; padding:0;
+  }
+
+  /* ---------- Main ---------- */
+  main{ padding:24px 30px 20px; display:flex; flex-direction:column; gap:16px; min-width:0; }
+  .top-row{ display:grid; grid-template-columns: 1.05fr 1.4fr; gap:20px; align-items:stretch; }
+  .bottom-row{ display:grid; grid-template-columns: 1.4fr 0.85fr; gap:20px; flex:1; min-height:420px; }
+
+  #storageWarning{
+    display:none; background:#FBEAEA; border:1px solid var(--coral); color:#8a3b2a;
+    padding:8px 14px; border-radius:10px; font-size:12.5px;
+  }
+
+  .panel{
+    background:var(--card); border:1.5px solid var(--blue-deep); border-radius:var(--radius);
+    box-shadow:4px 4px 0 rgba(43,58,85,0.07); display:flex; flex-direction:column; overflow:hidden;
+  }
+  .panel-head{ display:flex; align-items:baseline; justify-content:space-between; padding:16px 20px 10px; flex-shrink:0; gap:10px;}
+  .panel-head h2{ font-family:'Fraunces',serif; font-style:italic; font-weight:600; font-size:20px; margin:0; color:var(--blue-deep); display:flex; align-items:center; }
+  .panel-head .tag{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft);
+    background:rgba(61,90,153,.08); padding:3px 8px; border-radius:6px; white-space:nowrap;
+  }
+  .add-toggle{
+    background:none;border:1px solid var(--blue); color:var(--blue); border-radius:7px;
+    font-size:11px; padding:3px 9px; cursor:pointer; font-family:'IBM Plex Mono',monospace;
+  }
+
+  .live-dot{
+    display:inline-block; width:7px;height:7px;border-radius:50%; background:var(--sage);
+    margin-right:6px; animation:pulse 1.6s infinite;
+  }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+  @media (prefers-reduced-motion: reduce){ .live-dot{ animation:none; } }
+
+  /* Homework panel */
+  .hw-add-form{ display:none; gap:6px; padding:0 16px 10px; flex-wrap:wrap; }
+  .hw-add-form.open{ display:flex; }
+  .hw-add-form input{ border:1px solid var(--line); border-radius:8px; padding:6px 9px; font-size:12px; font-family:inherit; outline:none; }
+  .hw-add-form input.subj{ width:100px; }
+  .hw-add-form input.desc{ flex:1; min-width:130px; }
+  .hw-add-form input.due{ width:120px; }
+  .hw-add-form input[type=checkbox]{ width:auto; }
+  .hw-add-form label{ display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ink-soft); }
+  .hw-add-form button{ border:none; background:var(--coral); color:#fff; font-weight:600; border-radius:8px; padding:0 14px; cursor:pointer; font-size:12px;}
+
+  .hw-list{ padding:0 16px 16px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; }
+  .hw-item{ border:1px solid var(--line); border-radius:10px; padding:10px 12px; display:flex; gap:10px; align-items:flex-start; background:#FFFDF8; }
+  .hw-item.overdue{ border-color: var(--coral); background:#FFF4F0; }
+  .hw-check{
+    width:18px;height:18px; border-radius:5px; border:2px solid var(--blue); margin-top:2px; flex-shrink:0;
+    cursor:pointer; display:flex;align-items:center;justify-content:center; transition:background .15s;
+  }
+  .hw-check.done{ background:var(--sage); border-color:var(--sage);}
+  .hw-check.done::after{content:"✓"; color:#fff; font-size:12px; font-weight:700;}
+  .hw-body{flex:1; min-width:0;}
+  .hw-body .subj{ font-weight:700; font-size:13.5px; color:var(--blue-deep);}
+  .hw-body .desc{ font-size:13px; color:var(--ink); margin-top:2px; line-height:1.35;}
+  .hw-body .desc.done{ text-decoration:line-through; color:var(--ink-soft);}
+  .due{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; margin-top:5px; display:inline-block;
+    padding:2px 7px; border-radius:6px; background:rgba(226,96,62,0.12); color:var(--coral); font-weight:600;
+  }
+  .due.safe{ background:var(--sage-soft); color:#4d7654; }
+
+  /* Schedule panel */
+  .sched-wrap{ padding:0 16px 16px; overflow:auto; flex:1;}
+  table.sched{ border-collapse:collapse; width:100%; font-size:11.5px; min-width:640px; }
+  table.sched th, table.sched td{ border:1px solid var(--line); padding:6px 6px; text-align:center; vertical-align:middle; }
+  table.sched th{ background:var(--blue-deep); color:#fff; font-weight:600; font-family:'IBM Plex Mono',monospace; font-size:10.5px; }
+  table.sched td.day{ background:rgba(61,90,153,0.06); font-weight:700; color:var(--blue-deep); font-family:'IBM Plex Mono',monospace; font-size:10.5px; }
+  table.sched td.cell{ font-size:11px; line-height:1.25;}
+  table.sched td.cell .t{font-weight:600;}
+  table.sched td.cell .r{color:var(--ink-soft); font-size:10px;}
+  table.sched td.lunch{ background:#FBF2E1; font-style:italic; color:#8a6d2f;}
+  table.sched td.empty{ color:var(--line); }
+
+  /* Bulletin */
+  .composer{ padding:0 16px 12px; display:flex; gap:8px; flex-shrink:0;}
+  .composer textarea{
+    flex:1; resize:none; height:38px; border:1px solid var(--line); border-radius:10px;
+    padding:8px 10px; font-family:inherit; font-size:13px; outline:none;
+  }
+  .composer textarea:focus{border-color:var(--blue);}
+  .composer button{ border:none; background:var(--coral); color:#fff; font-weight:600; border-radius:10px; padding:0 16px; cursor:pointer; font-size:13px; }
+
+  .bulletin-scroll{ padding:0 18px 18px; overflow-y:auto; flex:1;}
+  .bulletin-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; align-content:start; }
+  .post{ border:1px solid var(--line); border-radius:12px; padding:14px; background:#FFFDF8; display:flex; flex-direction:column; gap:8px; }
+  .post-head{ display:flex; align-items:center; gap:8px;}
+  .post-head .who{ font-weight:700; font-size:13px;}
+  .post-head .when{ margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--ink-soft);}
+  .post p{ margin:0; font-size:13px; line-height:1.5; color:var(--ink); word-break:break-word;}
+  .post-foot{ display:flex; gap:16px; margin-top:4px; }
+  .post-foot span{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-soft); display:flex; align-items:center; gap:5px; cursor:pointer; }
+  .post-foot span:hover{ color:var(--blue); }
+  .reply-list{ display:flex; flex-direction:column; gap:5px; }
+  .reply-item{ font-size:12px; background:#F4F1E8; border-radius:8px; padding:5px 9px; word-break:break-word;}
+  .reply-item b{color:var(--blue-deep);}
+  .reply-box{ display:flex; gap:6px; }
+  .reply-box input{ flex:1; border:1px solid var(--line); border-radius:8px; padding:5px 9px; font-size:12px; font-family:inherit; outline:none; }
+  .reply-box button{ border:none; background:var(--blue); color:#fff; border-radius:8px; padding:0 10px; font-size:12px; cursor:pointer;}
+  .empty-state{ padding:24px 10px; text-align:center; color:var(--ink-soft); font-size:13px; grid-column: 1 / -1;}
+
+  /* Chat panel */
+  .chat-panel{ display:flex; flex-direction:column; }
+  .chat-head{ padding:14px 18px; border-bottom:1.5px solid var(--blue-deep); display:flex;align-items:center;gap:10px; flex-shrink:0; }
+  .chat-head h2{ font-family:'Fraunces',serif; font-style:italic; font-weight:600; font-size:18px; margin:0; color:var(--blue-deep);}
+  .chat-sub{ font-size:10.5px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; display:flex; align-items:center; margin-top:2px;}
+  .chat-messages{ flex:1; overflow-y:auto; padding:16px 18px; display:flex; flex-direction:column; gap:10px; }
+  .msg{ max-width:80%; display:flex; flex-direction:column; gap:3px;}
+  .msg.me{ align-self:flex-end; align-items:flex-end;}
+  .msg .bubble{ padding:9px 12px; border-radius:14px; font-size:13.5px; line-height:1.4; background:#EFEBDF; color:var(--ink); word-break:break-word;}
+  .msg.me .bubble{ background:var(--blue); color:#fff; border-bottom-right-radius:4px;}
+  .msg:not(.me) .bubble{ border-bottom-left-radius:4px; }
+  .msg .stamp{ font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-soft); padding:0 4px;}
+  .chat-input{ display:flex; align-items:center; gap:10px; padding:12px 14px; border-top:1.5px solid var(--blue-deep); flex-shrink:0; }
+  .chat-input input{ flex:1; border:1px solid var(--line); border-radius:20px; padding:9px 16px; font-family:inherit; font-size:13.5px; outline:none; background:#FFFDF8; }
+  .chat-input input:focus{ border-color:var(--blue); }
+  .send-btn{ width:36px;height:36px; border-radius:50%; background:var(--coral); border:none; color:#fff; font-size:16px; cursor:pointer; display:flex;align-items:center;justify-content:center; flex-shrink:0; transition:transform .1s; }
+  .send-btn:active{ transform:scale(.92); }
+
+  /* Name gate */
+  .name-gate{ position:fixed; inset:0; background:rgba(36,49,73,0.55); backdrop-filter:blur(2px); display:none; align-items:center; justify-content:center; z-index:50; padding:20px;}
+  .name-gate-card{ background:var(--card); border:2px solid var(--blue-deep); border-radius:16px; padding:28px 30px; width:320px; max-width:100%; box-shadow:6px 6px 0 rgba(43,58,85,.15); text-align:center; }
+  .name-gate-card h2{font-family:'Fraunces',serif;font-style:italic;color:var(--blue-deep);margin:0 0 6px;}
+  .name-gate-card p{font-size:13.5px;color:var(--ink-soft);margin:0 0 16px;}
+  .name-gate-card input{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); font-family:inherit; font-size:14px; margin-bottom:12px; outline:none; }
+  .name-gate-card input:focus{border-color:var(--blue);}
+  .name-gate-card button{ width:100%; padding:10px; border-radius:10px; border:none; background:var(--blue); color:#fff; font-weight:600; font-size:14px; cursor:pointer; }
+  .name-gate-card .hint{font-size:11px;color:var(--ink-soft);margin-top:10px; line-height:1.4;}
+
+  ::-webkit-scrollbar{ width:8px; height:8px;}
+  ::-webkit-scrollbar-thumb{ background:var(--line); border-radius:4px;}
+
+  @media (max-width: 980px){
+    .app{grid-template-columns:1fr;}
+    .sidebar{border-right:none; border-bottom:2px solid var(--blue-deep); flex-direction:row; flex-wrap:wrap; align-items:center;}
+    .top-row, .bottom-row{grid-template-columns:1fr;}
+    .bulletin-grid{grid-template-columns:1fr;}
+    .whoami{ margin-top:0; width:100%; order:99;}
+  }
+</style>
+</head>
+<body>
+
+<div class="name-gate" id="nameGate">
+  <div class="name-gate-card">
+    <h2>Welcome to Student Hub</h2>
+    <p>What should classmates see as your name?</p>
+    <input id="nameInput" placeholder="e.g. Min" maxlength="24">
+    <button id="nameSaveBtn">Continue</button>
+    <div class="hint" id="nameCancelWrap" style="display:none;">
+      <button id="nameCancelBtn" style="background:none;border:none;color:var(--ink-soft);text-decoration:underline;cursor:pointer;font-size:11px;padding:0;">cancel</button>
+    </div>
+    <div class="hint">No password — just a display name so classmates know who's who. Anyone with this page's link can open it and post.</div>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">SH</div>
+      <h1>Student<br>hub</h1>
+    </div>
+
+    <nav class="primary">
+      <button class="nav-item active" data-tab="home"><span class="dot"></span>Home</button>
+      <button class="nav-item" data-tab="schedule"><span class="dot"></span>Schedule</button>
+      <div class="subnav">
+        <button class="nav-item" data-tab="home">Homework</button>
+        <button class="nav-item" data-tab="schedule">Subject</button>
+      </div>
+    </nav>
+
+    <div>
+      <div class="block-label" style="margin-bottom:8px;">Chat &amp; Groupchat</div>
+      <div class="chat-list" id="chatList"></div>
+    </div>
+
+    <div class="whoami">
+      <span>You: <strong id="whoamiName">…</strong></span>
+      <span style="display:flex; gap:10px;">
+        <button id="changeNameBtn">change</button>
+        <button id="resetBtn">reset</button>
+      </span>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main>
+    <div id="storageWarning">Persistent storage isn't available right now, so changes here won't be saved between visits.</div>
+
+    <div class="top-row">
+
+      <!-- Homework / Reminders -->
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Homework &amp; reminders</h2>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="tag" id="hwCount">…</span>
+            <button class="add-toggle" id="hwAddToggle">+ add</button>
+          </div>
+        </div>
+        <div class="hw-add-form" id="hwAddForm">
+          <input class="subj" id="hwSubj" placeholder="Subject">
+          <input class="desc" id="hwDesc" placeholder="What's due">
+          <input class="due" id="hwDue" placeholder="Due Fri 10 Jul">
+          <label><input type="checkbox" id="hwUrgent"> urgent</label>
+          <button id="hwAddSubmit">Add</button>
+        </div>
+        <div class="hw-list" id="hwList"><div class="empty-state">Loading…</div></div>
+      </section>
+
+      <!-- Subject Schedule -->
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Subject schedule</h2>
+          <span class="tag">Sem. 1 · 2569</span>
+        </div>
+        <div class="sched-wrap">
+          <table class="sched" id="schedTable"></table>
+        </div>
+      </section>
+    </div>
+
+    <div class="bottom-row">
+
+      <!-- Bulletin -->
+      <section class="panel">
+        <div class="panel-head">
+          <h2><span class="live-dot"></span>Top bulletin posts</h2>
+          <span class="tag">Class 1/2</span>
+        </div>
+        <div class="composer">
+          <textarea id="postInput" placeholder="Share something with the class…"></textarea>
+          <button id="postBtn">Post</button>
+        </div>
+        <div class="bulletin-scroll">
+          <div class="bulletin-grid" id="bulletinGrid"><div class="empty-state">Loading…</div></div>
+        </div>
+      </section>
+
+      <!-- Chat -->
+      <section class="panel chat-panel">
+        <div class="chat-head">
+          <div class="avatar" id="chatHeadAvatar" style="background:var(--blue)">P1</div>
+          <div>
+            <h2 id="chatWithName">Person 1</h2>
+            <div class="chat-sub"><span class="live-dot"></span>shared with anyone who has this link</div>
+          </div>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input">
+          <input type="text" id="msgInput" placeholder="Enter message">
+          <button class="send-btn" id="sendBtn">&#8594;</button>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ======================================================================
+   CONFIG — edit this block to match your real class. Everything below
+   this block is logic; you shouldn't need to touch it to reskin data.
+   ====================================================================== */
+const CONTACTS = [
+  {id:'p1', name:'Person 1'},
+  {id:'p2', name:'Person 2'},
+  {id:'p3', name:'Person 3'},
+  {id:'g1', name:'Groupchat 1'},
+  {id:'g2', name:'Groupchat 2'}
+];
+const COLORS = ['#3D5A99','#E2603E','#7A9E7E','#B48A3A','#8A5FA8','#4A9B9B'];
+
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+const PERIODS = [
+  {t:"07.50–08.10", label:"(20)"},
+  {t:"08.10–08.55", label:"1"},
+  {t:"08.55–09.40", label:"2"},
+  {t:"09.40–09.55", label:"Break"},
+  {t:"09.55–10.40", label:"3"},
+  {t:"10.40–11.25", label:"4"},
+  {t:"11.25–12.10", label:"5"},
+  {t:"12.10–13.10", label:"Lunch"},
+  {t:"13.10–13.55", label:"6"},
+  {t:"13.55–14.40", label:"7"},
+  {t:"14.40–15.25", label:"8"}
+];
+const GRID = {
+  Monday:    ["Flag Ceremony","Sci Lab 1 / T.Benjo","Sci Lab 1 / T.Benjo","-","Eng Com / T.Kevin","Eng Com / T.Kevin","SSE self-study","-","ภาษาจีน / อ.จุ๋ย","สังคมศึกษา 1 / T.Karl","PE / T.Karl"],
+  Tuesday:   ["Homeroom","Social / T.Karl","Social / T.Karl","-","Sci: เคมีพื้นฐาน / อ.จิรวัฒน์","JE: ภาษาญี่ปุ่น / อ.ภิรมย์","ดนตรีสากล","-","ภาษาไทย / อ.นพดล","ประวัติศาสตร์ 1 / อ.ศิริพร","ประวัติศาสตร์ 1"],
+  Wednesday: ["Homeroom","สร้างสรรค์ 1 / อ.บุศรา","สร้างสรรค์ 1","-","Eng Com / T.Kevin","Mathematics / T.Maria","Mathematics / T.Maria","-","Science 1 / T.Benjo","Science 1","ลูกเสือ-เนตรนารี"],
+  Thursday:  ["Homeroom","Innovation / อ.เพ็ญ","JE: เทคโนฯ / อ.เพ็ญ","-","English / T.Kevin","Mathematics / T.Maria","Mathematics / T.Maria","-","Mathematics / T.Maria","HE / อ.ทิพย์","ภาษาไทย / อ.รัตน์"],
+  Friday:    ["Homeroom","Art / T.Daniel","ภาษาจีนฯ / อ.จุ๋ย","-","แนะแนว / อ.พรทิพย์","English / T.Kevin","ภาษาไทย / อ.รัตน์","-","การงานอาชีพ","การงานอาชีพ","ชมรม"]
+};
+/* ====================================================================== */
+
+const hasStorage = typeof window.storage !== 'undefined';
+
+let profile = null;
+let homeworkItems = [];
+let homeworkDone = {};
+let bulletinPosts = [];
+let readState = {};
+let conversations = {};
+let activeChat = 'p1';
+let pollTimer = null;
+let resetArmed = false;
+
+/* ---------------- utils ---------------- */
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, function(s){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s];
+  });
+}
+function initials(name){
+  return String(name||'?').trim().split(/\s+/).map(function(w){ return w[0]; }).slice(0,2).join('').toUpperCase();
+}
+function colorFor(str){
+  let hash = 0;
+  const s = String(str||'');
+  for(let i=0;i<s.length;i++){ hash = s.charCodeAt(i) + ((hash<<5)-hash); }
+  return COLORS[Math.abs(hash) % COLORS.length];
+}
+function makeId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function timeAgo(ts){
+  const diff = Date.now()-ts;
+  const m = Math.floor(diff/60000);
+  if(m<1) return 'just now';
+  if(m<60) return m+'m ago';
+  const h = Math.floor(m/60);
+  if(h<24) return h+'h ago';
+  const d = Math.floor(h/24);
+  if(d<7) return d+'d ago';
+  return new Date(ts).toLocaleDateString();
+}
+function timeShort(ts){
+  return new Date(ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+function withTimeout(promise, ms, fallback){
+  return Promise.race([
+    promise,
+    new Promise(function(resolve){ setTimeout(function(){ resolve(fallback); }, ms); })
+  ]);
+}
+
+/* ---------------- storage ---------------- */
+async function loadJSON(key, shared, fallback){
+  if(!hasStorage) return fallback;
+  try{
+    const res = await window.storage.get(key, shared);
+    return JSON.parse(res.value);
+  }catch(e){
+    return fallback;
+  }
+}
+async function saveJSON(key, shared, value){
+  if(!hasStorage) return false;
+  try{
+    await window.storage.set(key, JSON.stringify(value), shared);
+    return true;
+  }catch(e){
+    console.error('save failed', key, e);
+    return false;
+  }
+}
+async function appendToSharedArray(key, mutator){
+  let arr = [];
+  if(hasStorage){
+    try{
+      const res = await window.storage.get(key, true);
+      arr = JSON.parse(res.value);
+    }catch(e){ arr = []; }
+  }
+  const updated = mutator(arr);
+  await saveJSON(key, true, updated);
+  return updated;
+}
+
+/* ---------------- name gate ---------------- */
+document.getElementById('nameSaveBtn').addEventListener('click', saveName);
+document.getElementById('nameInput').addEventListener('keydown', function(e){ if(e.key==='Enter') saveName(); });
+document.getElementById('changeNameBtn').addEventListener('click', function(){
+  document.getElementById('nameInput').value = profile ? profile.name : '';
+  document.getElementById('nameCancelWrap').style.display = 'block';
+  document.getElementById('nameGate').style.display = 'flex';
+  document.getElementById('nameInput').focus();
+});
+document.getElementById('nameCancelBtn').addEventListener('click', function(){
+  document.getElementById('nameGate').style.display = 'none';
+});
+async function saveName(){
+  const val = document.getElementById('nameInput').value.trim();
+  if(!val) return;
+  profile = {name: val};
+  await saveJSON('profile', false, profile);
+  document.getElementById('nameGate').style.display = 'none';
+  document.getElementById('nameCancelWrap').style.display = 'none';
+  document.getElementById('whoamiName').textContent = profile.name;
+  finishBoot();
+}
+
+/* ---------------- reset ---------------- */
+document.getElementById('resetBtn').addEventListener('click', async function(){
+  const btn = document.getElementById('resetBtn');
+  if(!resetArmed){
+    resetArmed = true;
+    btn.textContent = 'confirm?';
+    setTimeout(function(){ resetArmed=false; btn.textContent='reset'; }, 3000);
+    return;
+  }
+  if(hasStorage){
+    for(const k of ['profile','homework-done','read-state']){
+      try{ await window.storage.delete(k, false); }catch(e){}
+    }
+  }
+  location.reload();
+});
+
+/* ---------------- homework ---------------- */
+document.getElementById('hwAddToggle').addEventListener('click', function(){
+  document.getElementById('hwAddForm').classList.toggle('open');
+});
+document.getElementById('hwAddSubmit').addEventListener('click', submitHomework);
+async function submitHomework(){
+  const subj = document.getElementById('hwSubj').value.trim();
+  const desc = document.getElementById('hwDesc').value.trim();
+  const due = document.getElementById('hwDue').value.trim();
+  const urgent = document.getElementById('hwUrgent').checked;
+  if(!subj || !desc) return;
+  const item = {id: makeId(), subject: subj, desc: desc, due: due || 'No due date set', overdue: urgent};
+  homeworkItems = await appendToSharedArray('homework-items', function(arr){ return arr.concat([item]); });
+  document.getElementById('hwSubj').value = '';
+  document.getElementById('hwDesc').value = '';
+  document.getElementById('hwDue').value = '';
+  document.getElementById('hwUrgent').checked = false;
+  document.getElementById('hwAddForm').classList.remove('open');
+  renderHomework();
+  updateHwCount();
+}
+function renderHomework(){
+  const hwListEl = document.getElementById('hwList');
+  if(homeworkItems.length === 0){
+    hwListEl.innerHTML = '<div class="empty-state">No homework logged yet. Use "+ add" above to log the first assignment.</div>';
+    return;
+  }
+  hwListEl.innerHTML = homeworkItems.map(function(h){
+    const done = !!homeworkDone[h.id];
+    return (
+      '<div class="hw-item '+(h.overdue && !done ? 'overdue' : '')+'">' +
+        '<div class="hw-check '+(done?'done':'')+'" data-id="'+h.id+'"></div>' +
+        '<div class="hw-body">' +
+          '<div class="subj">'+escapeHtml(h.subject)+'</div>' +
+          '<div class="desc '+(done?'done':'')+'">'+escapeHtml(h.desc)+'</div>' +
+          '<span class="due '+(h.overdue?'':'safe')+'">'+escapeHtml(h.due)+'</span>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join('');
+  hwListEl.querySelectorAll('.hw-check').forEach(function(el){
+    el.addEventListener('click', function(){ toggleHomeworkDone(el.dataset.id); });
+  });
+}
+async function toggleHomeworkDone(id){
+  homeworkDone[id] = !homeworkDone[id];
+  await saveJSON('homework-done', false, homeworkDone);
+  renderHomework();
+  updateHwCount();
+}
+function updateHwCount(){
+  const open = homeworkItems.filter(function(h){ return !homeworkDone[h.id]; }).length;
+  const tag = document.getElementById('hwCount');
+  if(tag) tag.textContent = open + ' open';
+}
+
+/* ---------------- schedule (static reference data) ---------------- */
+function renderSchedule(){
+  const table = document.getElementById('schedTable');
+  let thead = '<thead><tr><th>Day</th>';
+  PERIODS.forEach(function(p){ thead += '<th>'+p.label+'<br>'+p.t+'</th>'; });
+  thead += '</tr></thead>';
+
+  let tbody = '<tbody>';
+  DAYS.forEach(function(day){
+    tbody += '<tr><td class="day">'+day+'</td>';
+    GRID[day].forEach(function(cell, idx){
+      const label = PERIODS[idx].label;
+      if(label === 'Break' || label === 'Lunch'){
+        tbody += '<td class="lunch">'+label+'</td>';
+      } else if(cell === '-' || !cell){
+        tbody += '<td class="empty">—</td>';
+      } else {
+        const parts = cell.split(' / ');
+        tbody += '<td class="cell"><div class="t">'+parts[0]+'</div>'+(parts[1] ? '<div class="r">'+parts[1]+'</div>' : '')+'</td>';
+      }
+    });
+    tbody += '</tr>';
+  });
+  tbody += '</tbody>';
+  table.innerHTML = thead + tbody;
+}
+
+/* ---------------- bulletin ---------------- */
+document.getElementById('postBtn').addEventListener('click', submitPost);
+async function submitPost(){
+  const inp = document.getElementById('postInput');
+  const text = inp.value.trim();
+  if(!text) return;
+  const post = {id: makeId(), who: profile.name, when: Date.now(), body: text, likes:0, likedBy:[], replies:[]};
+  bulletinPosts = await appendToSharedArray('bulletin-posts', function(arr){ return [post].concat(arr); });
+  inp.value = '';
+  renderBulletin();
+}
+function renderBulletin(){
+  const grid = document.getElementById('bulletinGrid');
+  const openDrafts = {};
+  grid.querySelectorAll('.reply-box').forEach(function(box){
+    if(box.style.display === 'flex'){
+      openDrafts[box.dataset.id] = (box.querySelector('input')||{}).value || '';
+    }
+  });
+
+  if(bulletinPosts.length === 0){
+    grid.innerHTML = '<div class="empty-state">No posts yet — be the first to share something with the class.</div>';
+  } else {
+    grid.innerHTML = bulletinPosts.map(function(p){
+      const likedByMe = (p.likedBy||[]).indexOf(profile.name) !== -1;
+      const replies = p.replies||[];
+      const repliesHtml = replies.map(function(r){
+        return '<div class="reply-item"><b>'+escapeHtml(r.who)+':</b> '+escapeHtml(r.text)+'</div>';
+      }).join('');
+      return (
+        '<div class="post">' +
+          '<div class="post-head">' +
+            '<div class="avatar" style="background:'+colorFor(p.who)+';width:24px;height:24px;font-size:10px;">'+initials(p.who)+'</div>' +
+            '<span class="who">'+escapeHtml(p.who)+'</span>' +
+            '<span class="when">'+timeAgo(p.when)+'</span>' +
+          '</div>' +
+          '<p>'+escapeHtml(p.body)+'</p>' +
+          '<div class="post-foot">' +
+            '<span class="like-btn" data-id="'+p.id+'">'+(likedByMe?'&#9829;':'&#9825;')+' <span class="like-count">'+p.likes+'</span></span>' +
+            '<span class="reply-toggle" data-id="'+p.id+'">&#9998; '+replies.length+' '+(replies.length===1?'reply':'replies')+'</span>' +
+          '</div>' +
+          (repliesHtml ? '<div class="reply-list">'+repliesHtml+'</div>' : '') +
+          '<div class="reply-box" id="replyBox-'+p.id+'" data-id="'+p.id+'" style="display:none;">' +
+            '<input placeholder="Write a reply…" id="replyInput-'+p.id+'">' +
+            '<button data-id="'+p.id+'">Send</button>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+  }
+
+  Object.keys(openDrafts).forEach(function(id){
+    const box = document.getElementById('replyBox-'+id);
+    if(box){
+      box.style.display = 'flex';
+      const inp = box.querySelector('input');
+      if(inp) inp.value = openDrafts[id];
+    }
+  });
+
+  grid.querySelectorAll('.like-btn').forEach(function(el){
+    el.addEventListener('click', function(){ toggleLike(el.dataset.id); });
+  });
+  grid.querySelectorAll('.reply-toggle').forEach(function(el){
+    el.addEventListener('click', function(){
+      const box = document.getElementById('replyBox-'+el.dataset.id);
+      if(!box) return;
+      const opening = box.style.display !== 'flex';
+      box.style.display = opening ? 'flex' : 'none';
+      if(opening){
+        const inp = box.querySelector('input');
+        if(inp) inp.focus();
+      }
+    });
+  });
+  grid.querySelectorAll('.reply-box button').forEach(function(el){
+    el.addEventListener('click', function(){ sendReply(el.dataset.id); });
+  });
+  grid.querySelectorAll('.reply-box input').forEach(function(inp){
+    inp.addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){ sendReply(inp.id.replace('replyInput-','')); }
+    });
+  });
+}
+async function toggleLike(id){
+  const name = profile.name;
+  bulletinPosts = await appendToSharedArray('bulletin-posts', function(arr){
+    return arr.map(function(p){
+      if(p.id !== id) return p;
+      const likedBy = p.likedBy || [];
+      const already = likedBy.indexOf(name) !== -1;
+      return Object.assign({}, p, {
+        likes: already ? p.likes - 1 : p.likes + 1,
+        likedBy: already ? likedBy.filter(function(n){ return n!==name; }) : likedBy.concat([name])
+      });
+    });
+  });
+  renderBulletin();
+}
+async function sendReply(id){
+  const inp = document.getElementById('replyInput-'+id);
+  if(!inp) return;
+  const text = inp.value.trim();
+  if(!text) return;
+  const box = document.getElementById('replyBox-'+id);
+  if(box) box.style.display = 'none';
+  const reply = {who: profile.name, text: text, when: Date.now()};
+  bulletinPosts = await appendToSharedArray('bulletin-posts', function(arr){
+    return arr.map(function(p){
+      if(p.id !== id) return p;
+      return Object.assign({}, p, {replies: (p.replies||[]).concat([reply])});
+    });
+  });
+  renderBulletin();
+}
+
+/* ---------------- chat ---------------- */
+function renderChatList(){
+  const chatListEl = document.getElementById('chatList');
+  chatListEl.innerHTML = CONTACTS.map(function(c){
+    const conv = conversations[c.id] || [];
+    const last = conv[conv.length-1];
+    const unread = conv.filter(function(m){ return m.when > (readState[c.id]||0) && m.who !== profile.name; }).length;
+    return (
+      '<div class="chat-entry '+(c.id===activeChat?'active':'')+'" data-id="'+c.id+'">' +
+        '<div class="avatar" style="background:'+colorFor(c.name)+'">'+initials(c.name)+'</div>' +
+        '<div class="meta">' +
+          '<span>'+escapeHtml(c.name)+'</span>' +
+          '<small>'+(last ? escapeHtml(last.who)+': '+escapeHtml(last.text) : 'No messages yet')+'</small>' +
+        '</div>' +
+        (unread ? '<span class="unread">'+unread+'</span>' : '') +
+      '</div>'
+    );
+  }).join('');
+  chatListEl.querySelectorAll('.chat-entry').forEach(function(el){
+    el.addEventListener('click', function(){ switchChat(el.dataset.id); });
+  });
+}
+async function switchChat(id){
+  activeChat = id;
+  conversations[id] = await loadJSON('chat:'+id, true, conversations[id] || []);
+  readState[id] = Date.now();
+  await saveJSON('read-state', false, readState);
+  renderChatList();
+  renderChat();
+}
+function renderChat(){
+  const c = CONTACTS.filter(function(x){ return x.id===activeChat; })[0];
+  document.getElementById('chatWithName').textContent = c.name;
+  const avatarEl = document.getElementById('chatHeadAvatar');
+  avatarEl.style.background = colorFor(c.name);
+  avatarEl.textContent = initials(c.name);
+
+  const conv = conversations[activeChat] || [];
+  const messagesEl = document.getElementById('chatMessages');
+  if(conv.length === 0){
+    messagesEl.innerHTML = '<div class="empty-state">No messages yet — say hi.</div>';
+  } else {
+    messagesEl.innerHTML = conv.map(function(m){
+      const mine = m.who === profile.name;
+      return (
+        '<div class="msg '+(mine?'me':'')+'">' +
+          '<div class="bubble">'+(mine ? '' : '<strong style="opacity:.7;font-size:11.5px;">'+escapeHtml(m.who)+'</strong><br>')+escapeHtml(m.text)+'</div>' +
+          '<span class="stamp">'+timeShort(m.when)+'</span>' +
+        '</div>'
+      );
+    }).join('');
+  }
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+document.getElementById('sendBtn').addEventListener('click', sendMsg);
+document.getElementById('msgInput').addEventListener('keydown', function(e){ if(e.key==='Enter') sendMsg(); });
+async function sendMsg(){
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if(!text) return;
+  const msg = {who: profile.name, text: text, when: Date.now()};
+  conversations[activeChat] = await appendToSharedArray('chat:'+activeChat, function(arr){ return arr.concat([msg]); });
+  input.value = '';
+  readState[activeChat] = Date.now();
+  await saveJSON('read-state', false, readState);
+  renderChat();
+  renderChatList();
+}
+
+/* ---------------- nav ---------------- */
+document.querySelectorAll('.nav-item[data-tab]').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.nav-item[data-tab]').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    const target = tab === 'schedule' ? document.querySelectorAll('.panel')[1] : document.querySelectorAll('.panel')[0];
+    target.scrollIntoView({behavior:'smooth', block:'center'});
+  });
+});
+
+/* ---------------- polling (simulated real-time: no websockets here,
+   so we re-check storage every few seconds instead) ---------------- */
+function startPolling(){
+  if(pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(pollTick, 6000);
+}
+async function pollTick(){
+  if(!hasStorage) return;
+  try{
+    const freshActive = await loadJSON('chat:'+activeChat, true, conversations[activeChat]);
+    if(JSON.stringify(freshActive) !== JSON.stringify(conversations[activeChat])){
+      conversations[activeChat] = freshActive;
+      renderChat();
+    }
+    for(let i=0;i<CONTACTS.length;i++){
+      const c = CONTACTS[i];
+      if(c.id === activeChat) continue;
+      conversations[c.id] = await loadJSON('chat:'+c.id, true, conversations[c.id] || []);
+    }
+    const freshBulletin = await loadJSON('bulletin-posts', true, bulletinPosts);
+    if(JSON.stringify(freshBulletin) !== JSON.stringify(bulletinPosts)){
+      bulletinPosts = freshBulletin;
+      renderBulletin();
+    }
+    const freshHw = await loadJSON('homework-items', true, homeworkItems);
+    if(JSON.stringify(freshHw) !== JSON.stringify(homeworkItems)){
+      homeworkItems = freshHw;
+      renderHomework();
+      updateHwCount();
+    }
+    renderChatList();
+  }catch(e){ console.error('poll error', e); }
+}
+
+/* ---------------- boot ---------------- */
+async function boot(){
+  if(!hasStorage){
+    document.getElementById('storageWarning').style.display = 'block';
+  }
+  renderSchedule();
+
+  const base = await Promise.all([
+    withTimeout(loadJSON('homework-items', true, []), 8000, []),
+    withTimeout(loadJSON('homework-done', false, {}), 8000, {}),
+    withTimeout(loadJSON('bulletin-posts', true, []), 8000, []),
+    withTimeout(loadJSON('read-state', false, {}), 8000, {})
+  ]);
+  homeworkItems = base[0];
+  homeworkDone = base[1];
+  bulletinPosts = base[2];
+  readState = base[3];
+
+  const convResults = await Promise.all(CONTACTS.map(function(c){
+    return withTimeout(loadJSON('chat:'+c.id, true, []), 8000, []);
+  }));
+  CONTACTS.forEach(function(c, i){ conversations[c.id] = convResults[i]; });
+
+  if(hasStorage){
+    try{
+      const res = await window.storage.get('profile', false);
+      profile = JSON.parse(res.value);
+    }catch(e){ profile = null; }
+  }
+
+  if(profile && profile.name){
+    document.getElementById('whoamiName').textContent = profile.name;
+    finishBoot();
+  } else {
+    document.getElementById('nameGate').style.display = 'flex';
+  }
+}
+function finishBoot(){
+  renderHomework();
+  updateHwCount();
+  renderBulletin();
+  renderChatList();
+  renderChat();
+  startPolling();
+}
+
+boot();
+</script>
+</body>
+</html>
